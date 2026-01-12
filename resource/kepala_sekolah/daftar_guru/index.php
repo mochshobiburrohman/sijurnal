@@ -1,45 +1,100 @@
 <?php
 session_start();
-if (!isset($_SESSION['role'])) header("Location: index.php");
+// Cek sesi dan role, hanya kepala sekolah yang boleh akses
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'kepala_sekolah') {
+    header("Location: ../../../index.php");
+    exit;
+}
 
 include '../../../koneksi.php';
-$role = $_SESSION['role'];
-$nama = $_SESSION['nama'];
 
-if ($role == 'guru') {
-    // Dashboard Guru: Lihat dan tambah jurnal
-    $id_guru = $_SESSION['user_id'];
-    $sql = "SELECT * FROM jurnal_harian WHERE id_guru=$id_guru ORDER BY tanggal DESC";
-    $journals = $conn->query($sql);
-} elseif ($role == 'kepala_sekolah') {
-    // Dashboard Kepsek: Lihat jurnal untuk verifikasi
-    $sql = "SELECT j.*, g.nama AS nama_guru FROM jurnal_harian j JOIN guru g ON j.id_guru=g.id ORDER BY j.tanggal DESC";
-    $journals = $conn->query($sql);
-} elseif ($role == 'admin') {
-    // Dashboard Admin: Kelola semua
-    $sql = "SELECT * FROM guru";
-    $gurus = $conn->query($sql);
-    $sql = "SELECT * FROM kepala_sekolah";
-    $kepseks = $conn->query($sql);
-}
+// Ambil data semua guru yang terdaftar
+$sql = "SELECT * FROM guru ORDER BY nama ASC";
+$result = $conn->query($sql);
 ?>
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Daftar Guru - Kepala Sekolah</title>
     <link href="../../../src/output.css" rel="stylesheet">
 </head>
-<body>
-<div class="antialiased bg-gray-50 dark:bg-gray-900">
-<?php include ("../../partials/navbar.php")?>
-<?php include ("../../partials/sidebar_kepala_sekolah.php")?>
-    <main class="p-4 md:ml-64 h-auto pt-20">
+<body class="bg-gray-50 dark:bg-gray-900">
     
-    </main>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
-  
+    <div class="antialiased">
+        <?php include ("../../partials/navbar.php") ?>
+        
+        <?php include ("../../partials/sidebar_kepala_sekolah.php") ?>
+
+        <main class="p-4 md:ml-64 h-auto pt-20">
+            <div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700">
+                <div class="w-full mb-1">
+                    <div class="mb-4">
+                        <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">Daftar Guru Terdaftar</h1>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col">
+                <div class="overflow-x-auto">
+                    <div class="inline-block w-full align-middle">
+                        <div class="overflow-hidden shadow">
+                            <table class="w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600">
+                                <thead class="bg-gray-100 dark:bg-gray-700">
+                                    <tr>
+                                        <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                            No
+                                        </th>
+                                        <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                            Nama Lengkap
+                                        </th>
+                                        <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                            NIP
+                                        </th>
+                                        <th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+                                            Username
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                                    <?php if ($result->num_rows > 0): ?>
+                                        <?php $no = 1; while ($row = $result->fetch_assoc()): ?>
+                                        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                                <?= $no++; ?>
+                                            </td>
+                                            <td class="p-4 text-sm font-normal text-gray-500 whitespace-nowrap dark:text-gray-400">
+                                                <div class="text-base font-semibold text-gray-900 dark:text-white">
+                                                    <?= htmlspecialchars($row['nama']); ?>
+                                                </div>
+                                            </td>
+                                            <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                                <?= htmlspecialchars($row['nip']); ?>
+                                            </td>
+                                            <td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                                <?= htmlspecialchars($row['username']); ?>
+                                            </td>
+                                        </tr>
+                                        <?php endwhile; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="4" class="p-4 text-center text-gray-500 dark:text-gray-400">
+                                                Belum ada guru yang mendaftar.
+                                            </td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
 </body>
 </html>

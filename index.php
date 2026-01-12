@@ -19,11 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['nama'] = $user ['nama'];
         
         if ($role == 'admin'){
-            header("Location: resource/admin/kelola_user");
+            header("Location: resource/admin/index.php");
         } elseif ($role =='kepala_sekolah'){
-           header("Location: resource/kepala_sekolah/kelola_jurnal");
+           header("Location: resource/kepala_sekolah/index.php");
         } elseif($role == 'guru'){
-            header("Location: resource/guru/kelola_jurnal");
+            header("Location: resource/guru/index.php");
         }
     } else {
         $error = "Login gagal!";

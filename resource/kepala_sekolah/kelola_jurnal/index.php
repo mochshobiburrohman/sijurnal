@@ -1,105 +1,116 @@
 <?php
 session_start();
-if (!isset($_SESSION['role'])) header("Location: index.php");
+// Cek sesi dan role, hanya kepala sekolah yang boleh akses
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'kepala_sekolah') {
+    header("Location: ../../../index.php");
+    exit;
+}
 
 include '../../../koneksi.php';
-$role = $_SESSION['role'];
-$nama = $_SESSION['nama'];
 
-if ($role == 'guru') {
-    // Dashboard Guru: Lihat dan tambah jurnal
-    $id_guru = $_SESSION['user_id'];
-    $sql = "SELECT * FROM jurnal_harian WHERE id_guru=$id_guru ORDER BY tanggal DESC";
-    $journals = $conn->query($sql);
-} elseif ($role == 'kepala_sekolah') {
-    // Dashboard Kepsek: Lihat jurnal untuk verifikasi
-    $sql = "SELECT j.*, g.nama AS nama_guru FROM jurnal_harian j JOIN guru g ON j.id_guru=g.id ORDER BY j.tanggal DESC";
-    $journals = $conn->query($sql);
-} elseif ($role == 'admin') {
-    // Dashboard Admin: Kelola semua
-    $sql = "SELECT * FROM guru";
-    $gurus = $conn->query($sql);
-    $sql = "SELECT * FROM kepala_sekolah";
-    $kepseks = $conn->query($sql);
-}
+// Query tetap sama (SELECT * akan otomatis mengambil kolom kelas & mata_pelajaran yang baru ditambahkan)
+$sql = "SELECT j.*, g.nama AS nama_guru 
+        FROM jurnal_harian j 
+        JOIN guru g ON j.id_guru = g.id 
+        ORDER BY j.tanggal DESC";
+$result = $conn->query($sql);
 ?>
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Verifikasi Jurnal - Kepala Sekolah</title>
     <link href="../../../src/output.css" rel="stylesheet">
 </head>
-<body>
-<div class="antialiased bg-gray-50 dark:bg-gray-900">
-<?php include ("../../partials/navbar.php")?>
-<?php include ("../../partials/sidebar_kepala_sekolah.php")?>
-    <main class="p-4 md:ml-64 h-auto pt-20">
-    <div class="p-6">
-    <h2 class="text-xl font-semibold text-white mb-4">
-        Verifikasi Jurnal
-    </h2>
+<body class="bg-gray-50 dark:bg-gray-900">
+    
+    <div class="antialiased">
+        <?php include ("../../partials/navbar.php") ?>
+        <?php include ("../../partials/sidebar_kepala_sekolah.php") ?>
 
-    <div class="overflow-x-auto rounded-lg border border-slate-600">
-        <table class="w-full text-sm text-left text-white">
-            <!-- HEADER -->
-            <thead class="bg-slate-800 border-b border-slate-600">
-                <tr>
-                    <th class="px-4 py-3 font-semibold border-r border-slate-600">Nama Guru</th>
-                    <th class="px-4 py-3 font-semibold border-r border-slate-600">Tanggal</th>
-                    <th class="px-4 py-3 font-semibold border-r border-slate-600">Isi Jurnal</th>
-                    <th class="px-4 py-3 font-semibold border-r border-slate-600">Status</th>
-                    <th class="px-4 py-3 font-semibold text-center">Aksi</th>
-                </tr>
-            </thead>
+        <main class="p-4 md:ml-64 h-auto pt-20">
+            <div class="mb-4">
+                <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">
+                    Verifikasi Jurnal Guru
+                </h1>
+            </div>
 
-            <!-- BODY -->
-            <tbody class="bg-slate-900">
-                <?php while ($row = $journals->fetch_assoc()): ?>
-                    <tr class="border-b border-slate-700 hover:bg-slate-800 transition">
-                        <td class="px-4 py-3 border-r border-slate-700">
-                            <?= htmlspecialchars($row['nama_guru']); ?>
-                        </td>
+            <div class="flex flex-col">
+                <div class="overflow-x-auto">
+                    <div class="inline-block min-w-full align-middle">
+                        <div class="overflow-hidden shadow rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                                <thead class="bg-gray-100 dark:bg-gray-700">
+                                    <tr>
+                                        <th class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Tanggal</th>
+                                        <th class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Guru</th>
+                                        
+                                        <th class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Kelas</th>
+                                        <th class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Mata Pelajaran</th>
+                                        <th class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Isi Jurnal</th>
+                                        <th class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Status</th>
+                                        <th class="p-4 text-xs font-medium text-center text-gray-500 uppercase dark:text-gray-400">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                                    <?php if ($result->num_rows > 0): ?>
+                                        <?php while ($row = $result->fetch_assoc()): ?>
+                                        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            <td class="p-4 text-sm font-medium text-gray-900 dark:text-white">
+                                                <?= htmlspecialchars($row['tanggal']); ?>
+                                            </td>
+                                            <td class="p-4 text-sm text-gray-900 dark:text-white">
+                                                <?= htmlspecialchars($row['nama_guru']); ?>
+                                            </td>
 
-                        <td class="px-4 py-3 border-r border-slate-700">
-                            <?= $row['tanggal']; ?>
-                        </td>
-
-                        <td class="px-4 py-3 border-r border-slate-700 max-w-lg truncate">
-                            <?= htmlspecialchars($row['isi_jurnal']); ?>
-                        </td>
-
-                        <td class="px-4 py-3 border-r border-slate-700 font-medium
-                            <?= $row['status'] === 'verified'
-                                ? 'text-green-400'
-                                : 'text-yellow-400'; ?>">
-                            <?= ucfirst($row['status']); ?>
-                        </td>
-
-                        <td class="px-4 py-3 text-center">
-                            <a href="verify_journal.php?id=<?= $row['id']; ?>"
-                               class="px-3 py-1 bg-blue-600 dark:text-blue-600 rounded
-                                      hover:bg-blue-700 transition text-xs">
-                                Verifikasi
-                            </a>
-                        </td>
-                    </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
+                                            <td class="p-4 text-sm text-gray-900 dark:text-white">
+                                                <?= htmlspecialchars($row['kelas'] ?? '-'); ?>
+                                            </td>
+                                            <td class="p-4 text-sm text-gray-900 dark:text-white">
+                                                <?= htmlspecialchars($row['mata_pelajaran'] ?? '-'); ?>
+                                            </td>
+                                            <td class="p-4 text-sm text-gray-500 dark:text-gray-400">
+                                                <?= htmlspecialchars(substr($row['isi_jurnal'], 0, 50)) . '...'; ?>
+                                            </td>
+                                            <td class="p-4 text-sm text-gray-900 dark:text-white">
+                                                <span class="px-2 py-1 rounded-full text-xs font-bold
+                                                    <?php
+                                                        if ($row['status'] == 'verified') echo 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+                                                        elseif ($row['status'] == 'rejected') echo 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+                                                        else echo 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+                                                    ?>">
+                                                    <?= ucfirst($row['status']); ?>
+                                                </span>
+                                            </td>
+                                            <td class="p-4 text-center">
+                                                <a href="verify_journal.php?id=<?= $row['id']; ?>" 
+                                                   class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                                                    Verifikasi
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <?php endwhile; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="7" class="p-4 text-center text-gray-500 dark:text-gray-400">
+                                                Tidak ada data jurnal untuk diverifikasi.
+                                            </td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <a href="../cetak_jurnal/cetak_jurnal.php" target="_blank"
+                   class="border border-white inline-block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition text-sm">
+                    Cetak Laporan
+        </main>
     </div>
-</div>
-    <a href="cetak_jurnal.php" target="_blank"
-       class="px-4 py-2 bg-green-600 text-white rounded
-              hover:bg-green-700 transition text-sm">
-        Cetak
-    </a>
-</div>
-
-    </main>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
-  
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
 </body>
 </html>

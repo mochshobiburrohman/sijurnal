@@ -11,7 +11,7 @@
 <div class="antialiased bg-gray-50 dark:bg-gray-900">
 <?php include ("../partials/navbar.php")?>
 <?php include ("../partials/sidebar_guru.php")?>
-    <main class="p-4 md:ml-64 h-auto pt-20">
+    <main class="h-screen p-4 md:ml-64 h-auto pt-20">
       
     </main>
   </div>

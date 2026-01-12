@@ -6,7 +6,7 @@ if ($_SESSION['role'] !== 'kepala_sekolah') {
 
 include '../../../koneksi.php';
 
-$sql = "SELECT j.tanggal, j.isi_jurnal, j.status, g.nama
+$sql = "SELECT j.tanggal, j.isi_jurnal, j.status, g.nama, j.mata_pelajaran, j.kelas
         FROM jurnal_harian j
         JOIN guru g ON j.id_guru = g.id
         ORDER BY j.tanggal DESC";
@@ -61,6 +61,8 @@ $data = $conn->query($sql);
             <th>No</th>
             <th>Nama Guru</th>
             <th>Tanggal</th>
+            <th>Mata Pelajaran</th>
+            <th>Kelas</th>
             <th>Isi Jurnal</th>
             <th>Status</th>
         </tr>
@@ -71,6 +73,8 @@ $data = $conn->query($sql);
             <td><?= $no++; ?></td>
             <td><?= htmlspecialchars($row['nama']); ?></td>
             <td><?= $row['tanggal']; ?></td>
+            <td><?= $row['mata_pelajaran']; ?></td>
+            <td><?= $row['kelas']; ?></td>
             <td><?= htmlspecialchars($row['isi_jurnal']); ?></td>
             <td class="<?= $row['status'] === 'verified'
                     ? 'status-verified'
