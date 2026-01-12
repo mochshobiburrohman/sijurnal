@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                   
 
                   
-  <label for="countries" class="dark:text-white block mb-2.5 text-sm font-medium text-heading">Pilih role</label>
+  <label for="role" class="dark:text-white block mb-2.5 text-sm font-medium text-heading">Pilih role</label>
   <select name="role" id="role" class="block w-full px-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body">
     <option selected>Pilih role</option>
     <option value="admin">Admin</option>

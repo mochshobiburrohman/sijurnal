@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <link href="src/output.css" rel="stylesheet">
+    <link href="../../src/output.css" rel="stylesheet">
 </head>
 <body>
 <div class="antialiased bg-gray-50 dark:bg-gray-900">
 <?php include ("../partials/navbar.php")?>
 <?php include ("../partials/sidebar_admin.php")?>
-    <main class="p-4 md:ml-64 h-auto pt-20">
+<main class="h-screen p-4 md:ml-64 h-auto pt-20">
       
     </main>
   </div>

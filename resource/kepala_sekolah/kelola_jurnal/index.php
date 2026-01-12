@@ -39,9 +39,9 @@ $result = $conn->query($sql);
 
             <div class="flex flex-col">
                 <div class="overflow-x-auto">
-                    <div class="inline-block min-w-full align-middle">
+                    <div class="inline-block w-full align-middle">
                         <div class="overflow-hidden shadow rounded-lg">
-                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                            <table class="w-full divide-y divide-gray-200 dark:divide-gray-600">
                                 <thead class="bg-gray-100 dark:bg-gray-700">
                                     <tr>
                                         <th class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">Tanggal</th>
@@ -105,10 +105,6 @@ $result = $conn->query($sql);
                     </div>
                 </div>
             </div>
-            <div class="mt-4">
-                <a href="../cetak_jurnal/cetak_jurnal.php" target="_blank"
-                   class="border border-white inline-block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition text-sm">
-                    Cetak Laporan
         </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
