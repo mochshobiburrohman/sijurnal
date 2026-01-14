@@ -1,8 +1,6 @@
 <?php
 session_start();
-
 // Cek sesi dan role admin
-// Pastikan tidak ada spasi/enter sebelum <?php di file ini
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header("Location: ../../../index.php");
     exit;
@@ -33,6 +31,7 @@ $result_guru = $conn->query($sql_guru);
                     Cetak Laporan Jurnal (Admin)
                 </h1>
             </div>
+            
             <div class="max-w-xl mx-auto bg-white p-6 rounded-lg shadow dark:bg-gray-800">
                 <form action="cetak_jurnal.php" method="GET" target="_blank" class="space-y-5">
                     
@@ -43,7 +42,7 @@ $result_guru = $conn->query($sql_guru);
                         <select name="id_guru" id="id_guru" required
                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
                             <option value="">-- Pilih Nama Guru --</option>
-                            <?php if ($result_guru->num_rows > 0): ?>
+                            <?php if ($result_guru && $result_guru->num_rows > 0): ?>
                                 <?php while($guru = $result_guru->fetch_assoc()): ?>
                                     <option value="<?= $guru['id'] ?>"><?= htmlspecialchars($guru['nama']) ?> (NIP: <?= htmlspecialchars($guru['nip']) ?>)</option>
                                 <?php endwhile; ?>

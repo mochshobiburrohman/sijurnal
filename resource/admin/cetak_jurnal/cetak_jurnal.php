@@ -1,6 +1,5 @@
 <?php
 session_start();
-// Pastikan hanya admin
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit('Akses ditolak');
 }
@@ -22,11 +21,11 @@ $guru_info = $q_guru->fetch_assoc();
 $nama_guru = $guru_info ? $guru_info['nama'] : 'Tidak Diketahui';
 $nip_guru = $guru_info ? $guru_info['nip'] : '-';
 
-// Format tanggal untuk query
+// Format tanggal untuk query (YYYY-MM)
 $filter_tanggal = $bulan; 
 
-// Query Data Jurnal
-$sql = "SELECT j.tanggal, j.isi_jurnal, j.status, j.mata_pelajaran, j.kelas
+// Query Data Jurnal berdasarkan Guru dan Bulan
+$sql = "SELECT j.tanggal, j.isi_jurnal, j.status, j.mata_pelajaran, j.kelas, j.hadir
         FROM jurnal_harian j
         WHERE j.id_guru = '$id_guru' 
         AND j.tanggal LIKE '$filter_tanggal%'
@@ -34,7 +33,7 @@ $sql = "SELECT j.tanggal, j.isi_jurnal, j.status, j.mata_pelajaran, j.kelas
 
 $data = $conn->query($sql);
 
-// Format Bulan untuk Judul
+// Format Bulan untuk Judul (Contoh: Januari 2026)
 $nama_bulan = date("F Y", strtotime($bulan));
 ?>
 <!DOCTYPE html>
@@ -52,8 +51,8 @@ $nama_bulan = date("F Y", strtotime($bulan));
         table.data-table th, table.data-table td { border: 1px solid #000; padding: 8px; }
         table.data-table th { background: #f0f0f0; text-align: center; }
         .status-verified { color: green; font-weight: bold; }
-        .status-rejected { color: red; font-weight: bold; }
         .status-pending { color: orange; font-weight: bold; }
+        .status-rejected { color: red; font-weight: bold; }
         @media print {
             @page { margin: 2cm; }
             button { display: none; }
@@ -87,7 +86,7 @@ $nama_bulan = date("F Y", strtotime($bulan));
                 <th width="15%">Mata Pelajaran</th>
                 <th width="10%">Kelas</th>
                 <th>Isi Jurnal / Materi</th>
-                <th width="10%">Status</th>
+                <th class="border border-gray-400 px-2 py-1">Hadir</th>
             </tr>
         </thead>
         <tbody>
@@ -99,8 +98,9 @@ $nama_bulan = date("F Y", strtotime($bulan));
                     <td style="text-align: center;"><?= htmlspecialchars($row['mata_pelajaran'] ?? '-'); ?></td>
                     <td style="text-align: center;"><?= htmlspecialchars($row['kelas'] ?? '-'); ?></td>
                     <td><?= nl2br(htmlspecialchars($row['isi_jurnal'])); ?></td>
-                    <td style="text-align: center;">
-                        <span class="<?= 'status-' . $row['status']; ?>">
+                    <td class="border border-gray-400 px-2 py-1 text-center">
+                        <?= $row['hadir'] ?> Siswa
+                        </td>
                             <?= ucfirst($row['status']); ?>
                         </span>
                     </td>
