@@ -2,21 +2,21 @@
 session_start();
 require_once '../../koneksi.php'; 
 
-// Cek sesi login (sesuaikan nama variabel session login Anda, misal: id_user atau username)
+// Cek sesi login
 if (!isset($_SESSION['username'])) {
     header("Location: ../../index.php");
     exit;
 }
 
 $username = $_SESSION['username'];
-$table = 'guru'; // Untuk kepala sekolah ganti jadi 'kepala_sekolah'
+$table = 'guru'; // Sesuaikan tabel berdasarkan role (guru/kepala_sekolah/admin)
 
-// Proses Update Data
+// --- PROSES UPDATE PROFIL ---
 if (isset($_POST['update_profil'])) {
     $nama = mysqli_real_escape_string($conn, $_POST['nama']);
     $nip = mysqli_real_escape_string($conn, $_POST['nip']);
     $alamat = mysqli_real_escape_string($conn, $_POST['alamat']);
-    $jabatan = mysqli_real_escape_string($conn, $_POST['jabatan']); // Hapus baris ini untuk Kepala Sekolah
+    $jabatan = mysqli_real_escape_string($conn, $_POST['jabatan']); 
 
     // Logic Upload Foto
     $foto_query = ""; 
@@ -24,7 +24,6 @@ if (isset($_POST['update_profil'])) {
         $fotoName = time() . '_' . $_FILES['foto']['name'];
         $targetDir = "../../img/profil/";
         
-        // Buat folder jika belum ada
         if (!is_dir($targetDir)) {
             mkdir($targetDir, 0777, true);
         }
@@ -37,27 +36,53 @@ if (isset($_POST['update_profil'])) {
             if (move_uploaded_file($_FILES['foto']['tmp_name'], $targetFile)) {
                 $foto_query = ", foto='$fotoName'";
             } else {
-                $err = "Gagal upload gambar.";
+                $err_profil = "Gagal upload gambar.";
             }
         } else {
-            $err = "Format file harus JPG, JPEG, PNG, atau GIF.";
+            $err_profil = "Format file harus JPG, JPEG, PNG, atau GIF.";
         }
     }
 
-    if (!isset($err)) {
-        // Query update
+    if (!isset($err_profil)) {
         $sql = "UPDATE $table SET nama='$nama', nip='$nip', alamat='$alamat', jabatan='$jabatan' $foto_query WHERE username='$username'";
-        // Untuk Kepala Sekolah, hapus ", jabatan='$jabatan'" dari query di atas
-        
         if ($conn->query($sql) === TRUE) {
-            $msg = "Profil berhasil diperbarui!";
+            $msg_profil = "Profil berhasil diperbarui!";
         } else {
-            $err = "Error updating record: " . $conn->error;
+            $err_profil = "Error updating record: " . $conn->error;
         }
     }
 }
 
-// Ambil Data User Terbaru
+// --- PROSES GANTI PASSWORD ---
+if (isset($_POST['ganti_password'])) {
+    $old_pass = md5($_POST['old_password']);
+    $new_pass = $_POST['new_password'];
+    $conf_pass = $_POST['confirm_password'];
+
+    // Ambil password lama dari database
+    $cek = $conn->query("SELECT password FROM $table WHERE username='$username'");
+    $data_user = $cek->fetch_assoc();
+
+    if ($data_user['password'] != $old_pass) {
+        $err_pass = "Password lama salah!";
+    } elseif ($new_pass != $conf_pass) {
+        $err_pass = "Konfirmasi password baru tidak cocok!";
+    } elseif (strlen($new_pass) < 6) {
+        $err_pass = "Password baru minimal 6 karakter!";
+    } else {
+        // Update password baru
+        $hash_new_pass = md5($new_pass);
+        $sql_pass = "UPDATE $table SET password='$hash_new_pass' WHERE username='$username'";
+        
+        if ($conn->query($sql_pass) === TRUE) {
+            $msg_pass = "Password berhasil diubah!";
+        } else {
+            $err_pass = "Gagal mengubah password: " . $conn->error;
+        }
+    }
+}
+
+// Ambil Data User Terbaru untuk ditampilkan
 $sql = "SELECT * FROM $table WHERE username='$username'";
 $result = $conn->query($sql);
 $data = $result->fetch_assoc();
@@ -78,17 +103,20 @@ $data = $result->fetch_assoc();
     
     <?php include '../partials/sidebar_guru.php'; ?>
 
-    <div class="p-4 sm:ml-64 pt-20">
-        <div class="max-w-4xl mx-auto bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 p-6">
-            
-            <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Edit Profil</h2>
+    <div class="p-4 sm:ml-64 pt-20 pb-10">
+        
+        <div class="max-w-4xl mx-auto bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                Edit Profil
+            </h2>
 
-            <?php if(isset($msg)): ?>
-                <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert"><?= $msg ?></div>
+            <?php if(isset($msg_profil)): ?>
+                <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert"><?= $msg_profil ?></div>
             <?php endif; ?>
             
-            <?php if(isset($err)): ?>
-                <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert"><?= $err ?></div>
+            <?php if(isset($err_profil)): ?>
+                <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert"><?= $err_profil ?></div>
             <?php endif; ?>
 
             <form method="POST" enctype="multipart/form-data">
@@ -99,7 +127,7 @@ $data = $result->fetch_assoc();
                             <?php 
                                 $fotoPath = !empty($data['foto']) ? "../../img/profil/".$data['foto'] : "https://via.placeholder.com/150";
                             ?>
-                            <img class="w-32 h-32 rounded-full mx-auto object-cover border-4 border-gray-200 dark:border-gray-600" src="<?= $fotoPath ?>" alt="Foto Profil">
+                            <img class="w-32 h-32 rounded-full mx-auto object-cover border-4 border-gray-200 dark:border-gray-600 shadow-sm" src="<?= $fotoPath ?>" alt="Foto Profil">
                         </div>
                         
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="file_input">Ganti Foto</label>
@@ -113,14 +141,15 @@ $data = $result->fetch_assoc();
                             <input type="text" name="nama" value="<?= $data['nama'] ?>" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
                         </div>
 
-                        <div>
-                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">NIP</label>
-                            <input type="text" name="nip" value="<?= $data['nip'] ?>" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
-                        </div>
-
-                        <div>
-                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Jabatan / Guru Mapel</label>
-                            <input type="text" name="jabatan" value="<?= isset($data['jabatan']) ? $data['jabatan'] : '' ?>" placeholder="Contoh: Guru Matematika" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">NIP</label>
+                                <input type="text" name="nip" value="<?= $data['nip'] ?>" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Jabatan / Guru Mapel</label>
+                                <input type="text" name="jabatan" value="<?= isset($data['jabatan']) ? $data['jabatan'] : '' ?>" placeholder="Contoh: Guru Matematika" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+                            </div>
                         </div>
 
                         <div>
@@ -128,14 +157,57 @@ $data = $result->fetch_assoc();
                             <textarea name="alamat" rows="3" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"><?= $data['alamat'] ?></textarea>
                         </div>
 
-                        <div class="pt-4">
-                            <button type="submit" name="update_profil" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Simpan Perubahan</button>
+                        <div class="pt-2 text-right">
+                            <button type="submit" name="update_profil" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                Simpan Profil
+                            </button>
                         </div>
                     </div>
                 </div>
             </form>
-
         </div>
+
+        <div class="max-w-4xl mx-auto bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 p-6">
+            <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                Ganti Password
+            </h2>
+
+            <?php if(isset($msg_pass)): ?>
+                <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert"><?= $msg_pass ?></div>
+            <?php endif; ?>
+            
+            <?php if(isset($err_pass)): ?>
+                <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert"><?= $err_pass ?></div>
+            <?php endif; ?>
+
+            <form method="POST">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password Lama</label>
+                        <input type="password" name="old_password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password Baru</label>
+                            <input type="password" name="new_password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
+                        </div>
+                        <div>
+                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Konfirmasi Password Baru</label>
+                            <input type="password" name="confirm_password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" required>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 text-right">
+                        <button type="submit" name="ganti_password" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                            Update Password
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
     </div>
 
 </body>

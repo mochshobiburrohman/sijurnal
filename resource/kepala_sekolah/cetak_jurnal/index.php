@@ -11,6 +11,15 @@ include '../../../koneksi.php';
 // Ambil daftar semua guru untuk dropdown
 $sql_guru = "SELECT * FROM guru ORDER BY nama ASC";
 $result_guru = $conn->query($sql_guru);
+
+// Setup Variabel untuk Dropdown Tanggal
+$tahun_sekarang = date('Y');
+$bulan_sekarang = date('m');
+$nama_bulan = [
+    '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
+    '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
+    '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -49,16 +58,33 @@ $result_guru = $conn->query($sql_guru);
                     </div>
 
                     <div class="mb-4">
-                        <label for="bulan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                            Pilih Bulan
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                            Pilih Periode Jurnal
                         </label>
-                        <input type="month" name="bulan" id="bulan" required
-                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+                        <div class="flex gap-4">
+                            <div class="w-1/2">
+                                <select id="pilih_bulan" onchange="updateInputBulan()" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+                                    <?php foreach ($nama_bulan as $key => $val): ?>
+                                        <option value="<?= $key ?>" <?= ($key == $bulan_sekarang) ? 'selected' : '' ?>><?= $val ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            
+                            <div class="w-1/2">
+                                <select id="pilih_tahun" onchange="updateInputBulan()" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+                                    <?php for ($y = $tahun_sekarang; $y >= $tahun_sekarang - 5; $y--): ?>
+                                        <option value="<?= $y ?>" <?= ($y == $tahun_sekarang) ? 'selected' : '' ?>><?= $y ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="bulan" id="bulan_combined" value="<?= date('Y-m') ?>">
                     </div>
 
                     <div class="pt-4">
                         <button type="submit"
-                            class="border border-white w-['100px'] text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                            class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
                             Cetak Laporan
                         </button>
                     </div>
@@ -66,6 +92,17 @@ $result_guru = $conn->query($sql_guru);
             </div>
         </main>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
+    
+    <script>
+        function updateInputBulan() {
+            const bulan = document.getElementById('pilih_bulan').value;
+            const tahun = document.getElementById('pilih_tahun').value;
+            // Gabungkan menjadi format YYYY-MM (contoh: 2024-05)
+            const combined = `${tahun}-${bulan}`;
+            document.getElementById('bulan_combined').value = combined;
+        }
+    </script>
 </body>
 </html>
