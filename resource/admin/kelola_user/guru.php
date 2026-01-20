@@ -46,14 +46,17 @@ $gurus = $conn->query($sql);
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
                             <?php while ($row = $gurus->fetch_assoc()): ?>
+                                
                             <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
                                 <td class="p-4 text-sm font-normal text-gray-900 dark:text-white"><?= htmlspecialchars($row['nama']); ?></td>
                                 <td class="p-4 text-sm font-normal text-gray-500 dark:text-gray-400"><?= htmlspecialchars($row['nip']); ?></td>
                                 <td class="p-4 text-sm font-normal text-gray-500 dark:text-gray-400"><?= htmlspecialchars($row['username']); ?></td>
                                 <td class="p-4 text-center">
-                                    <a href="#" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-red-500 dark:hover:bg-red-600">
-                                        Hapus
-                                    </a>
+                                <a href="delete_user.php?id=<?= $row['id']; ?>&type=guru" 
+   onclick="return confirm('Apakah Anda yakin ingin menghapus data guru ini?');"
+   class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-red-500 dark:hover:bg-red-600">
+    Hapus
+</a>
                                 </td>
                             </tr>
                             <?php endwhile; ?>
